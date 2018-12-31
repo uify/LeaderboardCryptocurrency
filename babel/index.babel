@@ -1,0 +1,106 @@
+/* Dribble Design */
+/* https://dribbble.com/shots/4998808-Daily-UI-019-Leaderboard */
+
+class Main extends React.Component {
+  render() {
+    return (
+      <div class="main">
+        {this.props.children}
+      </div>
+    )
+  }
+}
+
+class Header extends React.Component {
+  render(){
+    return (
+      <div className="header">
+        <div className="header-logo">
+          <img src="https://seeklogo.com/images/B/binance-coin-bnb-logo-97F9D55608-seeklogo.com.png" alt="logo" />
+        </div>
+        <div className="header-text">
+          <span className="header-text-title">Cryptocurrency</span>
+          <span className="header-text-subtitle bold">Leaderboard</span>
+        </div>
+      </div>
+    )
+  }
+} 
+
+class List extends React.Component { 
+  constructor(props){
+    super(props)
+    
+    this.state = {
+      data: null
+    }
+  }
+  
+  componentDidMount(){
+    const data = []
+    fetch(`https://api.coinmarketcap.com/v2/ticker/?limit=10`)
+      .then( d => d.json())
+      .then((crypto) => {
+      
+        for (const prop in crypto.data) {
+          data.push(crypto.data[prop])
+        }
+
+        data.sort((a, b) => {
+            return a.rank - b.rank;
+        });
+      
+        this.setState({
+          data: data
+        })
+    })
+  }
+  
+  checkPositive(item) {
+    return item[0] !== '-';
+  }
+  
+  renderElements () {
+    return this.state.data.map((item, index) => {
+      return <div className="row">
+      <div className="column-left flex-grow-2">
+        <div className="divider-2">
+          <div className="logo">
+            <img src={`https://s2.coinmarketcap.com/static/img/coins/32x32/${item.id}.png`} alt={`${item.name}`}/>
+          </div>
+          <div className="price">
+            <span className="bold size-16">{item.name}</span>
+            <span className="size-13">{numeral(item.quotes.USD.price).format('0,0.000')}</span>
+          </div>
+        </div>
+      </div>
+      <div className={`column ${this.checkPositive(String(item.quotes.USD.percent_change_1h)) ? "green" : "red"}`}>
+        <i className="fas fa-sort-up"></i>
+        <span>{item.quotes.USD.percent_change_1h}%</span>
+      </div>
+    </div>
+    })
+  }
+  
+  render(){
+    console.log(this.state)
+    return (
+      <div className="content">
+        {this.state.data ? this.renderElements() : null}
+      </div>
+    )
+  }
+  
+}
+
+class Card extends React.Component {
+  render(){
+  	return (
+      <Main>
+        <Header/>
+        <List />
+      </Main>
+    )
+  }
+}
+ReactDOM.render(<Card/>, document.getElementById('app'));
